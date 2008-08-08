@@ -163,7 +163,7 @@ function rss_db_bk($event, $step) {
     $rs = safe_insert('txp_prefs', "name='rss_dbbk_mysql', val='".addslashes($rss_dbbk_mysql)."', prefs_id='1'");
   }
 
-  include(txpath . '/include/txp_prefs.php');
+  include(txpath.DS.'include'.DS.'txp_prefs.php');
 
   $bkpath = $rss_dbbk_path;
   $iswin = preg_match('/Win/',php_uname());
@@ -187,7 +187,7 @@ function rss_db_bk($event, $step) {
 			$tabpath = (gps("bk_table")) ? "-".gps("bk_table") : "";
       $gzip = gps("gzip");
 			$filename = time().'-'.$DB->db.$tabpath;
-      $backup_path = $bkpath.'/'.$filename.'.sql';
+      $backup_path = $bkpath.DS.$filename.'.sql';
       $lock = ($rss_dbbk_lock) ? "" : " --skip-lock-tables --skip-add-locks ";
       echo $txplogps;
       $nolog = ($rss_dbbk_txplog) ? "" : " --ignore-table=".$DB->db.".txp_log ";
@@ -226,7 +226,7 @@ function rss_db_bk($event, $step) {
   } else if (gps("download")) {
 
     $fn = gps("download");
-    $file_path = $bkpath.'/'.$fn;
+    $file_path = $bkpath.DS.$fn;
     header("Pragma: public");
     header("Expires: 0");
     header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
@@ -242,9 +242,9 @@ function rss_db_bk($event, $step) {
   } else if (gps("restore")) {
 
     if(stristr(gps("restore"), '.gz')) {
-      $backup_cmd = 'gunzip < '.$bkpath.'/'.gps("restore").' | '.$rss_dbbk_mysql.$mysql_hup.' '.$DB->db;
+      $backup_cmd = 'gunzip < '.$bkpath.DS.gps("restore").' | '.$rss_dbbk_mysql.$mysql_hup.' '.$DB->db;
     } else {
-      $backup_cmd = $rss_dbbk_mysql.$mysql_hup.' '.$DB->db.' < '.$bkpath.'/'.gps("restore");
+      $backup_cmd = $rss_dbbk_mysql.$mysql_hup.' '.$DB->db.' < '.$bkpath.DS.gps("restore");
     }
 
     $bkdebug = ($rss_dbbk_debug) ? $backup_cmd : '';
@@ -265,8 +265,8 @@ function rss_db_bk($event, $step) {
 
   } else if(gps("delete")) {
 
-      if(is_file($bkpath.'/'.gps("delete"))) {
-        if(!unlink($bkpath.'/'.gps("delete"))) {
+      if(is_file($bkpath.DS.gps("delete"))) {
+        if(!unlink($bkpath.DS.gps("delete"))) {
           pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('delete_failed').' '.gps("delete"));
         } else {
           pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('deleted').' '.gps("delete"));
@@ -337,7 +337,7 @@ function rss_db_bk($event, $step) {
         $style = ($no%2 == 0) ? ' style="background-color: #eee;"' : '';
         $database_text = substr($database_files[$i], 11);
         $date_text = strftime("%A, %B %d, %Y [%H:%M:%S]", substr($database_files[$i], 0, 10));
-        $size_text = filesize($bkpath.'/'.$database_files[$i]);
+        $size_text = filesize($bkpath.DS.$database_files[$i]);
         $totalsize += $size_text;
 
         echo
