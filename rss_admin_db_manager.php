@@ -29,10 +29,51 @@ if (@txpinterface == 'admin') {
 			'runsql_stats'=>'{success}/{total} Query(s) Executed Successfully.',
 			'runsql_unsupported'=>' - QUERY TYPE NOT SUPPORTED',
 			'dbman_repaired'=>'Repaired: ',
+			'dbman_repair'=>'Repair',
+			'dbman_repair_all'=>'Repair All',
 			'dbman_repaired_all'=>'Repaired All Tables',
+			'dbman_backup'=>'Backup',
 			'dbman_optimised'=>'Optimzed: ',
 			'dbman_dropped'=>'Dropped: ',
-		);
+			'dbman_host'=>'DB Host:',
+			'dbman_name'=>'DB Name:',
+			'dbman_user'=>'DB User:',
+			'dbman_ver'=>'DB Version:',
+			'dbman_total'=>'Total',
+			'dbman_tables'=>'Tables',
+			'dbman_records'=>'Records',
+			'dbman_data'=>'Data Usage',
+			'dbman_index'=>'Index Usage',
+			'dbman_overhead'=>'Overhead',
+			'dbman_errno'=>'ErrNo',
+			'dbman_drop'=>'Drop',
+			'dbman_optimise'=>'Optimise',
+			'prefs_saved'=>'Preferences Saved',
+			'backup_failed'=>'BACKUP FAILED: ',
+			'folder_no_write'=>'Folder is not writable',
+			'backed_up'=>'Backed Up: {db} to {file}',
+			'restored'=>'Restored: {db} from {file}',
+			'restore_failed'=>'FAILED TO RESTORE:',
+			'deleted'=>'Deleted:',
+			'delete_failed'=>'Unable to Delete:',
+			'gzipped'=>'gzipped file',
+			'backup_log'=>'Include txp_log?',
+			'locktables'=>'Lock Tables?',
+			'showdebug'=>'Show Debug?',
+			'backup_path'=>'Backup Path:',
+			'mysql_path'=>'MySQL Path:',
+			'mysqldump_path'=>'"mysqldump" Path:',
+			'existingfiles'=>'Previous Backup Files',
+			'bk_fname'=>'Backup File Name',
+			'bk_fdate'=>'Backup Date/Time',
+			'bk_fsize'=>'Backup File Size',
+			'restore'=>'Restore',
+			'bk_files'=>'Backup File(s)',
+			'no_backups'=>'You have no database backups.',
+			'bk_new'=>'Create a new backup of the {db} database?',
+			'sqlfile'=>'.sql file (text)',
+			'dbman_pre323'=>'Could Not Show Table Status Because Your MYSQL Version Is Lower Than 3.23.',
+			);
 
 	if( !defined( 'RSS_DBMAN_PREFIX' ) )
 		define( 'RSS_DBMAN_PREFIX' , 'rss_dbman' );
@@ -131,7 +172,7 @@ function rss_db_bk($event, $step) {
 
   if (ps("save")) {
 
-      pagetop(rss_dbman_gtxt('tab_db'), "Preferences Saved");
+      pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('prefs_saved'));
       safe_update("txp_prefs", "val = '".addslashes(ps('rss_dbbk_path'))."'","name = 'rss_dbbk_path' and prefs_id ='1'");
       safe_update("txp_prefs", "val = '".addslashes(ps('rss_dbbk_dump'))."'","name = 'rss_dbbk_dump' and prefs_id ='1'");
       safe_update("txp_prefs", "val = '".addslashes(ps('rss_dbbk_mysql'))."'","name = 'rss_dbbk_mysql' and prefs_id ='1'");
@@ -169,17 +210,17 @@ function rss_db_bk($event, $step) {
       }
 
       if(!is_writable($bkpath)) {
-        pagetop(rss_dbman_gtxt('tab_db'), "BACKUP FAILED: folder is not writable");
+        pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gxt('backup_failed').' '.rss_dbman_gxt('folder_no_write') );
       } elseif($error) {
         unlink($backup_path);
-        pagetop(rss_dbman_gtxt('tab_db'), "BACKUP FAILED.  ERROR NO: ".$error);
+        pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gxt('backup_failed').' '.rss_dbman_gtxt('dbman_errno').': '.$error);
       } else if(!is_file($backup_path)) {
-        pagetop(rss_dbman_gtxt('tab_db'), "BACKUP FAILED.  ERROR NO: ".$error);
+        pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gxt('backup_failed').' '.rss_dbman_gtxt('dbman_errno').': '.$error);
       } else if(filesize($backup_path) == 0) {
         unlink($backup_path);
-        pagetop(rss_dbman_gtxt('tab_db'), "BACKUP FAILED.  ERROR NO: ".$error);
+        pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gxt('backup_failed').' '.rss_dbman_gtxt('dbman_errno').': '.$error);
       } else {
-        pagetop(rss_dbman_gtxt('tab_db'), "Backed Up: ".$DB->db." to ".$filename);
+        pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('backed_up',array( '{db}'=>$DB->db,'{file}'=>$filename)));
       }
 
   } else if (gps("download")) {
@@ -217,32 +258,32 @@ function rss_db_bk($event, $step) {
     }
 
     if($error) {
-      pagetop(rss_dbman_gtxt('tab_db'), "FAILED TO RESTORE: ".$error);
+      pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('restore_failed').' '.$error);
     } else {
-      pagetop(rss_dbman_gtxt('tab_db'), "Restored: ".gps("restore")." to ".$DB->db);
+      pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('restored', array( '{db}'=>$DB->db,'{file}'=>gps('restore'))));
     }
 
   } else if(gps("delete")) {
 
       if(is_file($bkpath.'/'.gps("delete"))) {
         if(!unlink($bkpath.'/'.gps("delete"))) {
-          pagetop(rss_dbman_gtxt('tab_db'), "Unable to Delete: ".gps("delete"));
+          pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('delete_failed').' '.gps("delete"));
         } else {
-          pagetop(rss_dbman_gtxt('tab_db'), "Deleted: ".gps("delete"));
+          pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('deleted').' '.gps("delete"));
         }
       } else {
-        pagetop(rss_dbman_gtxt('tab_db'), "Unable to Delete: ".gps("delete"));
+        pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('delete_failed').' '.gps("delete"));
       }
 
   } else {
     pagetop(rss_dbman_gtxt('tab_backup'));
   }
 
-  $gzp = (!$iswin) ? " | ".href('gzipped file', "index.php?event=rss_db_bk&amp;bk=$DB->db&amp;gzip=1") : "";
+  $gzp = (!$iswin) ? " | ".href(rss_dbman_gtxt('gzipped'), "index.php?event=rss_db_bk&amp;bk=$DB->db&amp;gzip=1") : "";
 
   $sqlversion = getRow("SELECT VERSION() AS version");
   $sqlv = explode("-", $sqlversion['version']);
-  $allownologs = ((float)$sqlv[0] >= (float)"4.1.9") ? tda(gTxt('Include txp_log:'), ' style="text-align:right;vertical-align:middle"').tda(yesnoRadio("rss_dbbk_txplog", $rss_dbbk_txplog), ' style="text-align:left;vertical-align:middle"') : '';
+  $allownologs = ((float)$sqlv[0] >= (float)"4.1.9") ? tda(rss_dbman_gtxt('backup_log'), ' style="text-align:right;vertical-align:middle"').tda(yesnoRadio("rss_dbbk_txplog", $rss_dbbk_txplog), ' style="text-align:left;vertical-align:middle"') : '';
 
 	if (isset($bkdebug) && $bkdebug) echo '<p align="center">'.$bkdebug.'</p>';
 
@@ -250,31 +291,31 @@ function rss_db_bk($event, $step) {
   startTable('list').
   form(
   tr(
-    tda(gTxt('Lock Tables:'), ' style="text-align:right;vertical-align:middle"').tda(yesnoRadio("rss_dbbk_lock", $rss_dbbk_lock), ' style="text-align:left;vertical-align:middle"').
+    tda(rss_dbman_gtxt('locktables'), ' style="text-align:right;vertical-align:middle"').tda(yesnoRadio("rss_dbbk_lock", $rss_dbbk_lock), ' style="text-align:left;vertical-align:middle"').
     $allownologs.
-    tda(gTxt('Debug Mode:'), ' style="text-align:right;vertical-align:middle"').tda(yesnoRadio("rss_dbbk_debug", $rss_dbbk_debug), ' style="text-align:left;vertical-align:middle"').
+    tda(rss_dbman_gtxt('showdebug'), ' style="text-align:right;vertical-align:middle"').tda(yesnoRadio("rss_dbbk_debug", $rss_dbbk_debug), ' style="text-align:left;vertical-align:middle"').
     tda(fInput("submit","save",gTxt("save_button"),"publish").eInput("rss_db_bk").sInput('saveprefs'), " colspan=\"2\" class=\"noline\"")
   ).
   tr(
-    tda(gTxt('Backup Path:'), ' style="text-align:right;vertical-align:middle"').tda(text_input("rss_dbbk_path",$rss_dbbk_path,'50'), ' colspan="15"')
+    tda(rss_dbman_gtxt('backup_path'), ' style="text-align:right;vertical-align:middle"').tda(text_input("rss_dbbk_path",$rss_dbbk_path,'50'), ' colspan="15"')
   ).
   tr(
-    tda(gTxt('mysqldump Path:'), ' style="text-align:right;vertical-align:middle"').tda(text_input("rss_dbbk_dump",$rss_dbbk_dump,'50'), ' colspan="15"')
+    tda(rss_dbman_gtxt('mysqldump_path'), ' style="text-align:right;vertical-align:middle"').tda(text_input("rss_dbbk_dump",$rss_dbbk_dump,'50'), ' colspan="15"')
   ).
   tr(
-    tda(gTxt('mysql Path:'), ' style="text-align:right;vertical-align:middle"').tda(text_input("rss_dbbk_mysql",$rss_dbbk_mysql,'50'), ' colspan="15"'))
+    tda(rss_dbman_gtxt('mysql_path'), ' style="text-align:right;vertical-align:middle"').tda(text_input("rss_dbbk_mysql",$rss_dbbk_mysql,'50'), ' colspan="15"'))
   ).endTable().
   startTable("list").
   tr(
-    tda(hed('Create a new backup of the '.$DB->db.' database'.br.
-    href('.sql file', "index.php?event=rss_db_bk&amp;bk=$DB->db").$gzp,3),' colspan="7" style="text-align:center;"')
+    tda(hed(rss_dbman_gtxt('bk_new', array('{db}'=>strong($DB->db)) ).br.
+    href(rss_dbman_gtxt('sqlfile'), "index.php?event=rss_db_bk&amp;bk=$DB->db").$gzp,3),' colspan="7" style="text-align:center;"')
     ).
-  tr(tdcs(hed("Previous Backup Files",1),7)).
+  tr(tdcs(hed(rss_dbman_gtxt('existingfiles'),1),7)).
   tr(
-    hcell("No.").
-    hcell("Backup File Name").
-    hcell("Backup Date/Time").
-    hcell("Backup File Size").
+    hcell('#').
+    hcell(rss_dbman_gtxt('bk_fname')).
+    hcell(rss_dbman_gtxt('bk_fdate')).
+    hcell(rss_dbman_gtxt('bk_fsize')).
     hcell("").
     hcell("").
     hcell("")
@@ -305,30 +346,30 @@ function rss_db_bk($event, $step) {
           td($database_text).
           td($date_text).
           td(prettyFileSize($size_text)).
-          '<td><a href="index.php?event=rss_db_bk&amp;download='.$database_files[$i].'">Download</a></td>'.
-          '<td><a href="index.php?event=rss_db_bk&amp;restore='.$database_files[$i].'"  onclick="return verify(\''.gTxt('are_you_sure').'\')">Restore</a></td>'.
-          '<td><a href="index.php?event=rss_db_bk&amp;delete='.$database_files[$i].'"  onclick="return verify(\''.gTxt('are_you_sure').'\')">Delete</a></td>', $style
+          '<td><a href="index.php?event=rss_db_bk&amp;download='.$database_files[$i].'">'.gTxt('download').'</a></td>'.
+          '<td><a href="index.php?event=rss_db_bk&amp;restore='.$database_files[$i].'"  onclick="return verify(\''.gTxt('are_you_sure').'\')">'.rss_dbman_gtxt('restore').'</a></td>'.
+          '<td><a href="index.php?event=rss_db_bk&amp;delete='.$database_files[$i].'"  onclick="return verify(\''.gTxt('are_you_sure').'\')">'.gTxt('delete').'</a></td>', $style
         );
       }
 
     echo
       tr(
-        tag($no." Backup File(s)", "th", ' colspan="3"').
+        tag($no.' '.rss_dbman_gtxt('bk_files'), "th", ' colspan="3"').
         tag(prettyFileSize($totalsize), "th", ' colspan="4"')
       );
 
     } else {
       echo
       tr(
-        tda(hed('You have no database backups'.br.'Create a new backup of the '.$DB->db.' database'.br.
-        href('.sql file', "index.php?event=rss_db_bk&amp;bk=$DB->db").$gzp,3),' colspan="7" style="text-align:center;"')
+        tda(hed(rss_dbman_gtxt('no_backups').br.rss_dbman_gtxt('bk_new', array('{db}'=>strong($DB->db)) ).br.
+        href(rss_dbman_gtxt('sqlfile'), "index.php?event=rss_db_bk&amp;bk=$DB->db").$gzp,3),' colspan="7" style="text-align:center;"')
         );
     }
   } else {
       echo
       tr(
-        tda(hed('You have no database backups'.br.'Create a new backup of the '.$DB->db.' database'.br.
-        href('.sql file', "index.php?event=rss_db_bk&amp;bk=$DB->db").$gzp,3),' colspan="7" style="text-align:center;"')
+        tda(hed(rss_dbman_gtxt('no_backups').br.rss_dbman_gtxt('bk_new', array('{db}'=>strong($DB->db)) ).br.
+        href(rss_dbman_gtxt('sqlfile'), "index.php?event=rss_db_bk&amp;bk=$DB->db").$gzp,3),' colspan="7" style="text-align:center;"')
         );
   }
   echo endTable();
@@ -363,13 +404,13 @@ function rss_db_man($event, $step) {
 	echo
 	startTable('dbinfo').
 	tr(
-		hcell("Database Host:").
+		hcell(rss_dbman_gtxt('dbman_host')).
 		tda($DB->host, $headatts).
-		hcell("Database Name:").
+		hcell(rss_dbman_gtxt('dbman_name')).
 		tda($DB->db, $headatts).
-		hcell("Database User:").
+		hcell(rss_dbman_gtxt('dbman_user')).
 		tda($DB->user, $headatts).
-		hcell("Database Version:").
+		hcell(rss_dbman_gtxt('dbman_ver')).
 		tda("MySQL v".$sqlversion['version'], $headatts)
 	).
 	endTable().br;
@@ -377,18 +418,18 @@ function rss_db_man($event, $step) {
 	echo
 	startTable('list').
 	tr(
-		hcell("No.").
-		hcell("Tables").
-		hcell("Records").
-		hcell("Data Usage").
-		hcell("Index Usage").
-		hcell("Total Usage").
-		hcell("Overhead").
-		//hcell("Optimize").
-		hcell("ErrNo").
-		hcell("Repair").
-		hcell("Backup").
-		hcell("Drop")
+		hcell('#').
+		hcell(rss_dbman_gtxt('dbman_tables')).
+		hcell(rss_dbman_gtxt('dbman_records')).
+		hcell(rss_dbman_gtxt('dbman_data')).
+		hcell(rss_dbman_gtxt('dbman_index')).
+		hcell(rss_dbman_gtxt('dbman_total')).
+		hcell(rss_dbman_gtxt('dbman_overhead')).
+		//hcell(rss_dbman_gtxt('dbman_optimise')).
+		hcell(rss_dbman_gtxt('dbman_errno')).
+		hcell(rss_dbman_gtxt('dbman_repair')).
+		hcell(rss_dbman_gtxt('dbman_backup')).
+		hcell(rss_dbman_gtxt('dbman_drop'))
 	);
 
 		if($sqlversion['version'] >= '3.23') {
@@ -427,30 +468,30 @@ function rss_db_man($event, $step) {
 					td(prettyFileSize($Index_length)).
 					td(prettyFileSize($Data_length + $Index_length)).
 					tda(prettyFileSize($Data_free), $color2).
-					tda(" ".$mysqlErrno, $color).
-					td(href("Repair", "index.php?event=rss_db_man&amp;rep_table=".$Name)).
-					td(href("Backup", "index.php?event=rss_db_bk&amp;bk=1&amp;bk_table=".$Name).
-					'<td><a href="index.php?event=rss_db_man&amp;drop_table='.$Name.'"  onclick="return verify(\''.gTxt('are_you_sure').'\')">Drop</a></td>'), $style
+					tda(' '.$mysqlErrno, $color).
+					td(href(rss_dbman_gtxt('dbman_repair'), "index.php?event=rss_db_man&amp;rep_table=".$Name)).
+					td(href(rss_dbman_gtxt('dbman_backup'), "index.php?event=rss_db_bk&amp;bk=1&amp;bk_table=".$Name).
+					'<td><a href="index.php?event=rss_db_man&amp;drop_table='.$Name.'"  onclick="return verify(\''.gTxt('are_you_sure').'\')">'.rss_dbman_gtxt('dbman_drop').'</a></td>'), $style
 				);
 			}
 
 			echo
 			tr(
-				hcell("Total").
-				hcell($no." Tables").
+				hcell(rss_dbman_gtxt('dbman_total')).
+				hcell($no.' '.rss_dbman_gtxt('dbman_tables')).
 				hcell(number_format($row_usage)).
 				hcell(prettyFileSize($data_usage)).
 				hcell(prettyFileSize($index_usage)).
 				hcell(prettyFileSize($data_usage + $index_usage)).
 				hcell(prettyFileSize($overhead_usage)).
 				hcell().
-				tda(href(strong("Repair All"), "index.php?event=rss_db_man&amp;rep_all=".implode(",",$alltabs)), ' style="text-align:center;" colspan="3"'), $style
+				tda(href(strong(rss_dbman_gtxt('dbman_repair_all')), "index.php?event=rss_db_man&amp;rep_all=".implode(",",$alltabs)), ' style="text-align:center;" colspan="3"'), $style
 			);
 
 		} else {
 			echo
 			tr(
-				tda("Could Not Show Table Status Because Your MYSQL Version Is Lower Than 3.23.", ' style="text-align:center;" colspan=14"')
+				tda(rss_dbman_gtxt('dbman_pre323'), ' style="text-align:center;" colspan=14"')
 			);
 		}
 
@@ -590,6 +631,8 @@ function is_folder_empty($dir) {
   } else return true;
 }
 # --- END PLUGIN CODE ---
+if (0) {
+?>
 <!-- /*
 # --- BEGIN PLUGIN HELP ---
 <p>
@@ -650,3 +693,6 @@ The table markup allows you to add your own styles for creating a <a href="http:
 		<li>Heikki Yl</li></ul></p>
 # --- END PLUGIN HELP ---
 */ -->
+<?php
+}
+?>
