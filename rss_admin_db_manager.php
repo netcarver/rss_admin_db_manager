@@ -324,8 +324,14 @@ function rss_db_bk($event, $step) {
       for($i = (sizeof($database_files)-1); $i > -1; $i--) {
         $no++;
         $style = ($no%2 == 0) ? ' style="background-color: #eee;"' : '';
-        $database_text = substr($database_files[$i], 11);
-        $date_text = strftime('%A, %B %d, %Y [%H:%M:%S]', substr($database_files[$i], 0, 10));
+		$start = substr($database_files[$i], 0, 10);
+		if( is_numeric($start) ) {
+            $database_text = substr($database_files[$i], 11);
+            $date_text = strftime('%A, %B %d, %Y [%H:%M:%S]', $start );
+		} else {
+            $database_text = $database_files[$i];
+            $date_text = '-';
+		}
         $size_text = filesize($bkpath.DS.$database_files[$i]);
         $totalsize += $size_text;
 
