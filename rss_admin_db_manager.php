@@ -14,17 +14,68 @@ if (!defined('txpinterface')) @include_once('../zem_tpl.php');
 # --- BEGIN PLUGIN CODE ---
 
 if (@txpinterface == 'admin') {
-    add_privs('rss_db_man', '1');
-    register_tab("extensions", "rss_db_man", "DB Manager");
-    register_callback("rss_db_man", "rss_db_man");
+	#==================================
+	#	Strings + MLP Integration...
+	#==================================
+	global $rss_dbman_strings;
+	if( !is_array($rss_dbman_strings))
+		$rss_dbman_strings = array(
+			'tab_db'=>'DB Manager',
+		);
 
-    add_privs('rss_sql_run', '1');
-    register_tab("extensions", "rss_sql_run", "Run SQL");
-    register_callback("rss_sql_run", "rss_sql_run");
+	if( !defined( 'RSS_DBMAN_PREFIX' ) )
+		define( 'RSS_DBMAN_PREFIX' , 'rss_dbman' );
 
-    add_privs('rss_db_bk', '1');
-    register_tab("extensions", "rss_db_bk", "DB Backup");
-    register_callback("rss_db_bk", "rss_db_bk");
+	register_callback( 'rss_dbman_enumerate_strings' , 'l10n.enumerate_strings' );
+	function rss_dbman_enumerate_strings()
+		{
+		global $rss_dbman_strings;
+		$r = array	(
+					'owner'		=> 'rss_admin_db_manager',
+					'prefix'	=> RSS_DBMAN_PREFIX,
+					'lang'		=> 'en-gb',
+					'event'		=> 'admin',
+					'strings'	=> $rss_dbman_strings,
+					);
+		return $r;
+		}
+
+	function rss_dbman_gtxt( $what , $args=array() )
+		{
+		global $textarray;
+		global $rss_dbman_strings;
+
+		$what = strtolower($what);
+		$key = RSS_DBMAN_PREFIX . '-' . $what;
+
+		if (isset($textarray[$key]))
+			{
+			$str = $textarray[$key];
+			}
+		else
+			{
+			if (isset($rss_dbman_strings[$what]))
+				$str = $rss_dbman_strings[$what];
+			elseif (isset($textarray[$what]))
+				$str = $textarray[$what];
+			else
+				$str = $what;
+			}
+		$str = strtr( $str , $args );
+		return $str;
+		}
+
+	add_privs('rss_db_man', '1');
+	register_tab("extensions", "rss_db_man", "DB Manager");
+	register_callback("rss_db_man", "rss_db_man");
+
+	add_privs('rss_sql_run', '1');
+	register_tab("extensions", "rss_sql_run", "Run SQL");
+	register_callback("rss_sql_run", "rss_sql_run");
+
+	add_privs('rss_db_bk', '1');
+	register_tab("extensions", "rss_db_bk", "DB Backup");
+	register_callback("rss_db_bk", "rss_db_bk");
 }
 
 function rss_db_bk($event, $step) {
