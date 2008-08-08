@@ -23,6 +23,11 @@ if (@txpinterface == 'admin') {
 			'tab_db'=>'DB Manager',
 			'tab_sql'=>'Run SQL',
 			'tab_backup'=>'DB Backup',
+			'runsql_text'=>'Each query must be on a single line.  You may run multiple queries at once by starting a new line.'.br.'Supported query types include SELECT, INSERT, UPDATE, CREATE, REPLACE, and DELETE.',
+			'runsql_warn'=>'WARNING: All SQL run in this window will immediately and permanently change your database.',
+			'goto_dbman'=>'Go to Database Manager',
+			'runsql_stats'=>'{success}/{total} Query(s) Executed Successfully.',
+			'runsql_unsupported'=>' - QUERY TYPE NOT SUPPORTED',
 		);
 
 	if( !defined( 'RSS_DBMAN_PREFIX' ) )
@@ -453,7 +458,7 @@ echo
 }
 
 function rss_sql_run($event, $step) {
-  pagetop("Run SQL Query");
+  pagetop(rss_dbman_gtxt('tab_sql'));
   $text="";
   $rsd[]="";
   $sql_query2="";
@@ -525,11 +530,11 @@ function rss_sql_run($event, $step) {
           $text .= graf($sql_query, ' style="color:#D10000;"');
           $totalquerycount++;
         } elseif (preg_match("/^\\s*(drop|show|grant) /i",$sql_query)) {
-          $text .= graf($sql_query." - QUERY TYPE NOT SUPPORTED", ' style="color:#D10000;"');
+          $text .= graf($sql_query.rss_dbman_gtxt('runsql_unsupported'), ' style="color:#D10000;"');
           $totalquerycount++;
         }
       }
-      $text .= graf($successquery."/".$totalquerycount." Query(s) Executed Successfully", ' style="color:#0069D1;"');
+      $text .= graf( rss_dbman_gtxt('runsql_stats',array('{success}'=>$successquery,'{total}'=>$totalquerycount)), ' style="color:#0069D1;"');  
     }
   }
 
@@ -538,10 +543,10 @@ function rss_sql_run($event, $step) {
   tr(
     td(
       form(
-        graf("Each query must be on a single line.  You may run multiple queries at once by starting a new line.".br."Supported query types include SELECT, INSERT, UPDATE, CREATE, REPLACE, and DELETE.").
-        graf("WARNING: All SQL run in this window will immediately and permanently change your database.", ' style="font-weight:bold;"').
+        graf(rss_dbman_gtxt('runsql_text')).
+        graf(rss_dbman_gtxt('runsql_warn'), ' style="font-weight:bold;"').
         text_area('sql_query','200','550',$sql_query2).br.
-        fInput('submit','run',gTxt('Run'),'publish').href("Go to Database Manager", "index.php?event=rss_db_man").
+        fInput('submit','run',gTxt('Run'),'publish').href(rss_dbman_gtxt('goto_dbman'), "index.php?event=rss_db_man").
         eInput('rss_sql_run'), '', ' verify(\''.gTxt('are_you_sure').'\')"'
       )
     )
