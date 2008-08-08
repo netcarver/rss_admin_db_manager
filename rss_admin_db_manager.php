@@ -1,14 +1,15 @@
 <?php
 
-$plugin['name'] = 'rss_admin_db_manager';
-$plugin['version'] = '4.3';
-$plugin['author'] = 'Rob Sable';
-$plugin['author_uri'] = 'http://www.wilshireone.com/';
-$plugin['description'] = 'Database management system.';
+$plugin=array(
+'name'=>'rss_admin_db_manager',
+'version'=>'4.3',
+'author'=>'Rob Sable',
+'author_uri'=>'http://www.wilshireone.com/',
+'description'=>'Database management system.',
+'type'=>'1',
+);
 
-$plugin['type'] = '1';
-
-@include_once('zem_tpl.php');
+if (!defined('txpinterface')) @include_once('../zem_tpl.php');
 
 # --- BEGIN PLUGIN CODE ---
 
@@ -526,11 +527,8 @@ function is_folder_empty($dir) {
     return true;
   } else return true;
 }
-
 # --- END PLUGIN CODE ---
-if (0) {
-?>
-<!--
+<!-- /*
 # --- BEGIN PLUGIN HELP ---
 <p>
 h1. Textpattern Database Manager</p>
@@ -589,7 +587,4 @@ The table markup allows you to add your own styles for creating a <a href="http:
 		<li>Jan Willem de Bruijn</li>
 		<li>Heikki Yl</li></ul></p>
 # --- END PLUGIN HELP ---
--->
-<?php
-}
-?>
+*/ -->
