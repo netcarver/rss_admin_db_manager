@@ -20,6 +20,7 @@ if (@txpinterface == 'admin') {
 	global $rss_dbman_strings;
 	if( !is_array($rss_dbman_strings))
 		$rss_dbman_strings = array(
+			'pref_rss_dbbk_tsfiles'=>'Timestamp files?',
 			'tab_db'=>'DB Manager',
 			'tab_sql'=>'Run SQL',
 			'tab_backup'=>'DB Backup',
@@ -121,7 +122,7 @@ if (@txpinterface == 'admin') {
 	#==================================
 	#	Prefs Installation...
 	#==================================
-	global $file_base_path;
+	global $file_base_path,$rss_db_prefs;
 	$rss_db_prefs=array(
 		# 'var name'=>'default_value',
 		'rss_dbbk_lock'=>'1',
@@ -131,6 +132,7 @@ if (@txpinterface == 'admin') {
 		'rss_dbbk_dump'=>'mysqldump',
 		'rss_dbbk_mysql'=>'mysql',
 		'rss_dbbk_nosql'=>'0',
+		'rss_dbbk_tsfiles'=>'1',
 		);
 	foreach( $rss_db_prefs as $varname => $defval)
 	{
@@ -158,7 +160,11 @@ if (@txpinterface == 'admin') {
 }
 
 function rss_db_bk($event, $step) {
-	global $prefs, $rss_dbbk_path, $rss_dbbk_dump, $rss_dbbk_mysql, $rss_dbbk_lock, $rss_dbbk_txplog, $rss_dbbk_debug, $rss_dbbk_nosql, $DB, $file_base_path;
+	global $prefs, $DB, $file_base_path;
+	global $rss_db_prefs;
+	foreach( $rss_db_prefs as $varname => $defval) {
+		global $$varname;
+		}
 
 	include(txpath.DS.'include'.DS.'txp_prefs.php');
 
@@ -168,14 +174,10 @@ function rss_db_bk($event, $step) {
 	$txplogps = ps('rss_dbbk_txplog');
 
   if (ps('save')) {
-
       pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('prefs_saved'));
-      safe_update('txp_prefs', "val = '".addslashes(ps('rss_dbbk_path'))."'","name = 'rss_dbbk_path' and prefs_id ='1'");
-      safe_update('txp_prefs', "val = '".addslashes(ps('rss_dbbk_dump'))."'","name = 'rss_dbbk_dump' and prefs_id ='1'");
-      safe_update('txp_prefs', "val = '".addslashes(ps('rss_dbbk_mysql'))."'","name = 'rss_dbbk_mysql' and prefs_id ='1'");
-      safe_update('txp_prefs', "val = '".ps('rss_dbbk_lock')."'","name = 'rss_dbbk_lock' and prefs_id ='1'");
-      if (isset($txplogps)) safe_update('txp_prefs', "val = '".ps('rss_dbbk_txplog')."'","name = 'rss_dbbk_txplog' and prefs_id ='1'");
-      safe_update('txp_prefs', "val = '".ps('rss_dbbk_debug')."'","name = 'rss_dbbk_debug' and prefs_id ='1'");
+	  foreach( $rss_db_prefs as $varname => $defval) {
+		safe_update('txp_prefs', "val = '".doSlash(ps($varname))."'","name = '".$varname."' and prefs_id ='1'");
+		}
       header('Location: index.php?event=rss_db_bk');
 
   }  else if (gps('bk')) {
@@ -183,7 +185,10 @@ function rss_db_bk($event, $step) {
 	  $bk_table = (gps('bk_table')) ? ' --tables '.gps('bk_table').' ' : '';
 	  $tabpath = (gps('bk_table')) ? '-'.gps('bk_table') : '';
       $gzip = gps('gzip');
-	  $filename = time().'-'.$DB->db.$tabpath;
+	  if( $rss_dbbk_tsfiles )
+		$filename = time().'-'.$DB->db.$tabpath;
+	  else
+	  	$filename = $DB->db.$tabpath;
       $backup_path = $bkpath.DS.$filename.'.sql';
       $lock = ($rss_dbbk_lock) ? '' : ' --skip-lock-tables --skip-add-locks ';
       echo $txplogps;
@@ -217,7 +222,7 @@ function rss_db_bk($event, $step) {
         unlink($backup_path);
         pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gxt('backup_failed').' '.rss_dbman_gtxt('dbman_errno').': '.$error);
       } else {
-        pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('backed_up',array( '{db}'=>$DB->db,'{file}'=>$filename)));
+        pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('backed_up',array( '{db}'=>$DB->db,'{file}'=>$backup_path)));
       }
 
   } else if (gps('download')) {
@@ -291,7 +296,7 @@ function rss_db_bk($event, $step) {
     tda(rss_dbman_gtxt('locktables'), ' style="text-align:right;vertical-align:middle"').tda(yesnoRadio('rss_dbbk_lock', $rss_dbbk_lock), ' style="text-align:left;vertical-align:middle"').
     $allownologs.
     tda(rss_dbman_gtxt('showdebug'), ' style="text-align:right;vertical-align:middle"').tda(yesnoRadio('rss_dbbk_debug', $rss_dbbk_debug), ' style="text-align:left;vertical-align:middle"').
-    tda(fInput('submit','save',gTxt('save_button'),'publish').eInput('rss_db_bk').sInput('saveprefs'), " colspan=\"2\" class=\"noline\"")
+    tda(rss_dbman_gtxt('pref_rss_dbbk_tsfiles'), ' style="text-align:right;vertical-align:middle"').tda(yesnoRadio('rss_dbbk_tsfiles', $rss_dbbk_tsfiles), ' style="text-align:left;vertical-align:middle"')
   ).
   tr(
     tda(rss_dbman_gtxt('backup_path'), ' style="text-align:right;vertical-align:middle"').tda(text_input('rss_dbbk_path',$rss_dbbk_path,'50'), ' colspan="15"')
@@ -300,8 +305,11 @@ function rss_db_bk($event, $step) {
     tda(rss_dbman_gtxt('mysqldump_path'), ' style="text-align:right;vertical-align:middle"').tda(text_input('rss_dbbk_dump',$rss_dbbk_dump,'50'), ' colspan="15"')
   ).
   tr(
-    tda(rss_dbman_gtxt('mysql_path'), ' style="text-align:right;vertical-align:middle"').tda(text_input('rss_dbbk_mysql',$rss_dbbk_mysql,'50'), ' colspan="15"'))
-  ).endTable().
+    tda(rss_dbman_gtxt('mysql_path'), ' style="text-align:right;vertical-align:middle"').tda(text_input('rss_dbbk_mysql',$rss_dbbk_mysql,'50'), ' colspan="10"')
+  ).
+  tr(
+    tda(fInput('submit','save',gTxt('save_button'),'publish').eInput('rss_db_bk').sInput('saveprefs'), " colspan=\"2\" class=\"noline\"")
+  )).endTable().
   startTable('list').
   tr(
     tda(hed(rss_dbman_gtxt('bk_new', array('{db}'=>strong($DB->db)) ).br.
