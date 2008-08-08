@@ -6,7 +6,7 @@ $plugin=array(
 'author'=>'Rob Sable',
 'author_uri'=>'http://www.wilshireone.com/',
 'description'=>'Database management system.',
-'type'=>'1',
+'type'=>'3',
 );
 
 if (!defined('txpinterface')) @include_once('../zem_tpl.php');
