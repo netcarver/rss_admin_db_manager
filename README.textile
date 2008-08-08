@@ -1,0 +1,11 @@
+h1. rss_admin_db_manager
+
+h2. Description
+
+p. An extended version of Rob Sable's excellent DB management plugin for 
+"Textpattern":http://textpattern.com.
+
+h2. Licence
+
+p. This project is released under the "GPLv2 licence":http://www.fsf.org/licensing/licenses/info/GPLv2.html.
+
