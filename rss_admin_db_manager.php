@@ -28,6 +28,10 @@ if (@txpinterface == 'admin') {
 			'goto_dbman'=>'Go to Database Manager',
 			'runsql_stats'=>'{success}/{total} Query(s) Executed Successfully.',
 			'runsql_unsupported'=>' - QUERY TYPE NOT SUPPORTED',
+			'dbman_repaired'=>'Repaired: ',
+			'dbman_repaired_all'=>'Repaired All Tables',
+			'dbman_optimised'=>'Optimzed: ',
+			'dbman_dropped'=>'Dropped: ',
 		);
 
 	if( !defined( 'RSS_DBMAN_PREFIX' ) )
@@ -336,19 +340,19 @@ function rss_db_man($event, $step) {
   if (gps("opt_table")) {
     $query = "OPTIMIZE TABLE ".gps("opt_table");
     safe_query($query);
-    pagetop(rss_dbman_gtxt('tab_db'), "Optimzed: ".gps("opt_table"));
+    pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('dbman_optimised').gps("opt_table"));
   } else  if (gps("rep_table")) {
     $query = "REPAIR TABLE ".gps("rep_table");
     safe_query($query);
-    pagetop(rss_dbman_gtxt('tab_db'), "Repaired: ".gps("rep_table"));
+    pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('dbman_repaired').gps("rep_table"));
 	} else 	if (gps("rep_all")) {
 		$query = "REPAIR TABLE ".gps("rep_all");
 		safe_query($query);
-		pagetop(rss_dbman_gtxt('tab_db'), "Repaired All Tables");
+		pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('dbman_repaired_all'));
   } else  if (gps("drop_table")) {
     $query = "DROP TABLE ".gps("drop_table");
     safe_query($query);
-    pagetop(rss_dbman_gtxt('tab_db'), "Dropped: ".gps("drop_table"));
+    pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('dbman_dropped').gps("drop_table"));
   } else {
     pagetop(rss_dbman_gtxt('tab_db'));
   }
