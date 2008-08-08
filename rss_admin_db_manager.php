@@ -117,22 +117,11 @@ if (@txpinterface == 'admin') {
 		return $str;
 		}
 
-	add_privs('rss_db_man', '1');
-	register_tab('extensions', 'rss_db_man', rss_dbman_gtxt('tab_db'));
-	register_callback('rss_db_man', 'rss_db_man');
 
-	add_privs('rss_sql_run', '1');
-	register_tab('extensions', 'rss_sql_run', rss_dbman_gtxt('tab_sql'));
-	register_callback('rss_sql_run', 'rss_sql_run');
-
-	add_privs('rss_db_bk', '1');
-	register_tab('extensions', 'rss_db_bk', rss_dbman_gtxt('tab_backup'));
-	register_callback('rss_db_bk', 'rss_db_bk');
-}
-
-function rss_db_bk($event, $step) {
-	global $prefs, $DB, $file_base_path;
-
+	#==================================
+	#	Prefs Installation...
+	#==================================
+	global $file_base_path;
 	$rss_db_prefs=array(
 		# 'var name'=>'default_value',
 		'rss_dbbk_lock'=>'1',
@@ -141,6 +130,7 @@ function rss_db_bk($event, $step) {
 		'rss_dbbk_path'=>$file_base_path,
 		'rss_dbbk_dump'=>'mysqldump',
 		'rss_dbbk_mysql'=>'mysql',
+		'rss_dbbk_nosql'=>'0',
 		);
 	foreach( $rss_db_prefs as $varname => $defval)
 	{
@@ -151,6 +141,24 @@ function rss_db_bk($event, $step) {
 			$rs = safe_insert('txp_prefs', "name='$varname', val='".doSlash($defval)."', prefs_id='1'");
 			}
 	}
+		
+	add_privs('rss_db_man', '1');
+	register_tab('extensions', 'rss_db_man', rss_dbman_gtxt('tab_db'));
+	register_callback('rss_db_man', 'rss_db_man');
+
+	add_privs('rss_db_bk', '1');
+	register_tab('extensions', 'rss_db_bk', rss_dbman_gtxt('tab_backup'));
+	register_callback('rss_db_bk', 'rss_db_bk');
+
+	if( !$rss_dbbk_nosql || gps('tn') ) {
+		add_privs('rss_sql_run', '1');
+		register_tab('extensions', 'rss_sql_run', rss_dbman_gtxt('tab_sql'));
+		register_callback('rss_sql_run', 'rss_sql_run');
+	}
+}
+
+function rss_db_bk($event, $step) {
+	global $prefs, $rss_dbbk_path, $rss_dbbk_dump, $rss_dbbk_mysql, $rss_dbbk_lock, $rss_dbbk_txplog, $rss_dbbk_debug, $rss_dbbk_nosql, $DB, $file_base_path;
 
 	include(txpath.DS.'include'.DS.'txp_prefs.php');
 
@@ -489,15 +497,18 @@ function rss_db_man($event, $step) {
 				tda(rss_dbman_gtxt('dbman_pre323'), ' style="text-align:center;" colspan=14"')
 			);
 		}
-
+  global $rss_dbbk_nosql;
+  if( !$rss_dbbk_nosql )
 echo
 	tr(
 		tda(href(rss_dbman_gtxt('tab_sql'), 'index.php?event=rss_sql_run'), ' style="text-align:center;" colspan="14"')
-	).
-	endTable();
+	);
+echo endTable();
 }
 
 function rss_sql_run($event, $step) {
+  global $rss_dbbk_nosql;
+
   pagetop(rss_dbman_gtxt('tab_sql'));
   $text="";
   $rsd[]="";
@@ -579,23 +590,27 @@ function rss_sql_run($event, $step) {
   }
 
   echo
-  startTable('edit').
-  tr(
-    td(
-      form(
-        graf(rss_dbman_gtxt('runsql_text')).
-        graf(rss_dbman_gtxt('runsql_warn'), ' style="font-weight:bold;"').
-        text_area('sql_query','200','550',$sql_query2).br.
-        fInput('submit','run',gTxt('Run'),'publish').href(rss_dbman_gtxt('goto_dbman'), 'index.php?event=rss_db_man').
-        eInput('rss_sql_run'), '', ' verify(\''.gTxt('are_you_sure').'\')"'
-      )
-    )
-  ).
+  startTable('edit');
+  if( !$rss_dbbk_nosql )
+	  echo
+	  tr(
+		td(
+		  form(
+			graf(rss_dbman_gtxt('runsql_text')).
+			graf(rss_dbman_gtxt('runsql_warn'), ' style="font-weight:bold;"').
+			text_area('sql_query','200','550',$sql_query2).br.
+			fInput('submit','run',gTxt('Run'),'publish').href(rss_dbman_gtxt('goto_dbman'), 'index.php?event=rss_db_man').
+			eInput('rss_sql_run'), '', ' verify(\''.gTxt('are_you_sure').'\')"'
+		  )
+		)
+	  );
+  echo
   tr(
     td(
         graf($text.br.implode('', $rsd))
     )
-  ).
+  );
+  echo
   endTable();
 
 }
