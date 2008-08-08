@@ -131,43 +131,32 @@ if (@txpinterface == 'admin') {
 }
 
 function rss_db_bk($event, $step) {
-  global $prefs, $rss_dbbk_path, $rss_dbbk_dump, $rss_dbbk_mysql, $rss_dbbk_lock, $rss_dbbk_txplog, $rss_dbbk_debug, $DB, $file_base_path;
+	global $prefs, $DB, $file_base_path;
 
-  if (!isset($rss_dbbk_lock)) {
-    $rss_dbbk_lock = '1';
-    $rs = safe_insert('txp_prefs', "name='rss_dbbk_lock', val='$rss_dbbk_lock', prefs_id='1'");
-  }
+	$rss_db_prefs=array(
+		# 'var name'=>'default_value',
+		'rss_dbbk_lock'=>'1',
+		'rss_dbbk_txplog'=>'1',
+		'rss_dbbk_debug'=>'0',
+		'rss_dbbk_path'=>$file_base_path,
+		'rss_dbbk_dump'=>'mysqldump',
+		'rss_dbbk_mysql'=>'mysql',
+		);
+	foreach( $rss_db_prefs as $varname => $defval)
+	{
+		global $$varname;
+		if (!isset($$varname)) 
+			{
+			$$varname = $defval;
+			$rs = safe_insert('txp_prefs', "name='$varname', val='".doSlash($defval)."', prefs_id='1'");
+			}
+	}
 
-  if (!isset($rss_dbbk_txplog)) {
-    $rss_dbbk_txplog = '1';
-    $rs = safe_insert('txp_prefs', "name='rss_dbbk_txplog', val='$rss_dbbk_txplog', prefs_id='1'");
-  }
+	include(txpath.DS.'include'.DS.'txp_prefs.php');
 
-  if (!isset($rss_dbbk_debug)) {
-    $rss_dbbk_debug = '0';
-    $rs = safe_insert('txp_prefs', "name='rss_dbbk_debug', val='$rss_dbbk_debug', prefs_id='1'");
-  }
-
-  if (!isset($rss_dbbk_path)) {
-    $rss_dbbk_path = $file_base_path;
-    $rs = safe_insert('txp_prefs', "name='rss_dbbk_path', val='".addslashes($rss_dbbk_path)."', prefs_id='1'");
-  }
-
-  if (!isset($rss_dbbk_dump)) {
-    $rss_dbbk_dump = 'mysqldump';
-    $rs = safe_insert('txp_prefs', "name='rss_dbbk_dump', val='".addslashes($rss_dbbk_dump)."', prefs_id='1'");
-  }
-
-  if (!isset($rss_dbbk_mysql)) {
-    $rss_dbbk_mysql = 'mysql';
-    $rs = safe_insert('txp_prefs', "name='rss_dbbk_mysql', val='".addslashes($rss_dbbk_mysql)."', prefs_id='1'");
-  }
-
-  include(txpath.DS.'include'.DS.'txp_prefs.php');
-
-  $bkpath = $rss_dbbk_path;
-  $iswin = preg_match('/Win/',php_uname());
-  $mysql_hup = ' -h'.$DB->host.' -u'.$DB->user.' -p'.escapeshellcmd($DB->pass);
+	$bkpath = $rss_dbbk_path;
+	$iswin = preg_match('/Win/',php_uname());
+	$mysql_hup = ' -h'.$DB->host.' -u'.$DB->user.' -p'.escapeshellcmd($DB->pass);
 	$txplogps = ps('rss_dbbk_txplog');
 
   if (ps('save')) {
@@ -183,10 +172,10 @@ function rss_db_bk($event, $step) {
 
   }  else if (gps('bk')) {
 
-			$bk_table = (gps('bk_table')) ? ' --tables '.gps('bk_table').' ' : '';
-			$tabpath = (gps('bk_table')) ? '-'.gps('bk_table') : '';
+	  $bk_table = (gps('bk_table')) ? ' --tables '.gps('bk_table').' ' : '';
+	  $tabpath = (gps('bk_table')) ? '-'.gps('bk_table') : '';
       $gzip = gps('gzip');
-			$filename = time().'-'.$DB->db.$tabpath;
+	  $filename = time().'-'.$DB->db.$tabpath;
       $backup_path = $bkpath.DS.$filename.'.sql';
       $lock = ($rss_dbbk_lock) ? '' : ' --skip-lock-tables --skip-add-locks ';
       echo $txplogps;
