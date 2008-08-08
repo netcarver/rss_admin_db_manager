@@ -21,6 +21,8 @@ if (@txpinterface == 'admin') {
 	if( !is_array($rss_dbman_strings))
 		$rss_dbman_strings = array(
 			'tab_db'=>'DB Manager',
+			'tab_sql'=>'Run SQL',
+			'tab_backup'=>'DB Backup',
 		);
 
 	if( !defined( 'RSS_DBMAN_PREFIX' ) )
@@ -66,15 +68,15 @@ if (@txpinterface == 'admin') {
 		}
 
 	add_privs('rss_db_man', '1');
-	register_tab("extensions", "rss_db_man", "DB Manager");
+	register_tab("extensions", "rss_db_man", rss_dbman_gtxt('tab_db'));
 	register_callback("rss_db_man", "rss_db_man");
 
 	add_privs('rss_sql_run', '1');
-	register_tab("extensions", "rss_sql_run", "Run SQL");
+	register_tab("extensions", "rss_sql_run", rss_dbman_gtxt('tab_sql'));
 	register_callback("rss_sql_run", "rss_sql_run");
 
 	add_privs('rss_db_bk', '1');
-	register_tab("extensions", "rss_db_bk", "DB Backup");
+	register_tab("extensions", "rss_db_bk", rss_dbman_gtxt('tab_backup'));
 	register_callback("rss_db_bk", "rss_db_bk");
 }
 
@@ -120,7 +122,7 @@ function rss_db_bk($event, $step) {
 
   if (ps("save")) {
 
-      pagetop("DB Manager", "Preferences Saved");
+      pagetop(rss_dbman_gtxt('tab_db'), "Preferences Saved");
       safe_update("txp_prefs", "val = '".addslashes(ps('rss_dbbk_path'))."'","name = 'rss_dbbk_path' and prefs_id ='1'");
       safe_update("txp_prefs", "val = '".addslashes(ps('rss_dbbk_dump'))."'","name = 'rss_dbbk_dump' and prefs_id ='1'");
       safe_update("txp_prefs", "val = '".addslashes(ps('rss_dbbk_mysql'))."'","name = 'rss_dbbk_mysql' and prefs_id ='1'");
@@ -158,17 +160,17 @@ function rss_db_bk($event, $step) {
       }
 
       if(!is_writable($bkpath)) {
-        pagetop("DB Manager", "BACKUP FAILED: folder is not writable");
+        pagetop(rss_dbman_gtxt('tab_db'), "BACKUP FAILED: folder is not writable");
       } elseif($error) {
         unlink($backup_path);
-        pagetop("DB Manager", "BACKUP FAILED.  ERROR NO: ".$error);
+        pagetop(rss_dbman_gtxt('tab_db'), "BACKUP FAILED.  ERROR NO: ".$error);
       } else if(!is_file($backup_path)) {
-        pagetop("DB Manager", "BACKUP FAILED.  ERROR NO: ".$error);
+        pagetop(rss_dbman_gtxt('tab_db'), "BACKUP FAILED.  ERROR NO: ".$error);
       } else if(filesize($backup_path) == 0) {
         unlink($backup_path);
-        pagetop("DB Manager", "BACKUP FAILED.  ERROR NO: ".$error);
+        pagetop(rss_dbman_gtxt('tab_db'), "BACKUP FAILED.  ERROR NO: ".$error);
       } else {
-        pagetop("DB Manager", "Backed Up: ".$DB->db." to ".$filename);
+        pagetop(rss_dbman_gtxt('tab_db'), "Backed Up: ".$DB->db." to ".$filename);
       }
 
   } else if (gps("download")) {
@@ -206,25 +208,25 @@ function rss_db_bk($event, $step) {
     }
 
     if($error) {
-      pagetop("DB Manager", "FAILED TO RESTORE: ".$error);
+      pagetop(rss_dbman_gtxt('tab_db'), "FAILED TO RESTORE: ".$error);
     } else {
-      pagetop("DB Manager", "Restored: ".gps("restore")." to ".$DB->db);
+      pagetop(rss_dbman_gtxt('tab_db'), "Restored: ".gps("restore")." to ".$DB->db);
     }
 
   } else if(gps("delete")) {
 
       if(is_file($bkpath.'/'.gps("delete"))) {
         if(!unlink($bkpath.'/'.gps("delete"))) {
-          pagetop("DB Manager", "Unable to Delete: ".gps("delete"));
+          pagetop(rss_dbman_gtxt('tab_db'), "Unable to Delete: ".gps("delete"));
         } else {
-          pagetop("DB Manager", "Deleted: ".gps("delete"));
+          pagetop(rss_dbman_gtxt('tab_db'), "Deleted: ".gps("delete"));
         }
       } else {
-        pagetop("DB Manager", "Unable to Delete: ".gps("delete"));
+        pagetop(rss_dbman_gtxt('tab_db'), "Unable to Delete: ".gps("delete"));
       }
 
   } else {
-    pagetop("DB Backup");
+    pagetop(rss_dbman_gtxt('tab_backup'));
   }
 
   $gzp = (!$iswin) ? " | ".href('gzipped file', "index.php?event=rss_db_bk&amp;bk=$DB->db&amp;gzip=1") : "";
@@ -329,21 +331,21 @@ function rss_db_man($event, $step) {
   if (gps("opt_table")) {
     $query = "OPTIMIZE TABLE ".gps("opt_table");
     safe_query($query);
-    pagetop("DB Manager", "Optimzed: ".gps("opt_table"));
+    pagetop(rss_dbman_gtxt('tab_db'), "Optimzed: ".gps("opt_table"));
   } else  if (gps("rep_table")) {
     $query = "REPAIR TABLE ".gps("rep_table");
     safe_query($query);
-    pagetop("DB Manager", "Repaired: ".gps("rep_table"));
+    pagetop(rss_dbman_gtxt('tab_db'), "Repaired: ".gps("rep_table"));
 	} else 	if (gps("rep_all")) {
 		$query = "REPAIR TABLE ".gps("rep_all");
 		safe_query($query);
-		pagetop("DB Manager", "Repaired All Tables");
+		pagetop(rss_dbman_gtxt('tab_db'), "Repaired All Tables");
   } else  if (gps("drop_table")) {
     $query = "DROP TABLE ".gps("drop_table");
     safe_query($query);
-    pagetop("DB Manager", "Dropped: ".gps("drop_table"));
+    pagetop(rss_dbman_gtxt('tab_db'), "Dropped: ".gps("drop_table"));
   } else {
-    pagetop("Database Manager");
+    pagetop(rss_dbman_gtxt('tab_db'));
   }
 
 	$sqlversion = getRow("SELECT VERSION() AS version");
@@ -445,7 +447,7 @@ function rss_db_man($event, $step) {
 
 echo
 	tr(
-		tda(href("Run SQL", "index.php?event=rss_sql_run"), ' style="text-align:center;" colspan="14"')
+		tda(href(rss_dbman_gtxt('tab_sql'), "index.php?event=rss_sql_run"), ' style="text-align:center;" colspan="14"')
 	).
 	endTable();
 }
