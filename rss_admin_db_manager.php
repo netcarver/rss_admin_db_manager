@@ -131,7 +131,7 @@ if (@txpinterface == 'admin') {
 		'rss_dbbk_path'=>$file_base_path,
 		'rss_dbbk_dump'=>'mysqldump',
 		'rss_dbbk_mysql'=>'mysql',
-		'rss_dbbk_nosql'=>'0',
+		'rss_dbbk_nosql'=>'1',
 		'rss_dbbk_allow_drop'=>'0',
 		'rss_dbbk_tsfiles'=>'1',
 		);
