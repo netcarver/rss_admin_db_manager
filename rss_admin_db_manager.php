@@ -132,6 +132,7 @@ if (@txpinterface == 'admin') {
 		'rss_dbbk_dump'=>'mysqldump',
 		'rss_dbbk_mysql'=>'mysql',
 		'rss_dbbk_nosql'=>'0',
+		'rss_dbbk_allow_drop'=>'0',
 		'rss_dbbk_tsfiles'=>'1',
 		);
 	foreach( $rss_db_prefs as $varname => $defval)
@@ -387,7 +388,7 @@ function rss_db_bk($event, $step) {
 }
 
 function rss_db_man($event, $step) {
-  global $DB;
+  global $DB, $rss_dbbk_allow_drop;
 
   if (gps('opt_table')) {
     $query = 'OPTIMIZE TABLE '.gps('opt_table');
@@ -401,7 +402,7 @@ function rss_db_man($event, $step) {
 		$query = 'REPAIR TABLE '.gps('rep_all');
 		safe_query($query);
 		pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('dbman_repaired_all'));
-  } else  if (gps('drop_table')) {
+  } else  if (gps('drop_table') && $rss_dbbk_allow_drop) {
     $query = 'DROP TABLE '.gps('drop_table');
     safe_query($query);
     pagetop(rss_dbman_gtxt('tab_db'), rss_dbman_gtxt('dbman_dropped').gps('drop_table'));
@@ -440,7 +441,7 @@ function rss_db_man($event, $step) {
 		hcell(rss_dbman_gtxt('dbman_errno')).
 		hcell(rss_dbman_gtxt('dbman_repair')).
 		hcell(rss_dbman_gtxt('dbman_backup')).
-		hcell(rss_dbman_gtxt('dbman_drop'))
+		(($rss_dbbk_allow_drop) ? hcell(rss_dbman_gtxt('dbman_drop')) : '')
 	);
 
 		if($sqlversion['version'] >= '3.23') {
@@ -482,7 +483,13 @@ function rss_db_man($event, $step) {
 					tda(' '.$mysqlErrno, $color).
 					td(href(rss_dbman_gtxt('dbman_repair'), 'index.php?event=rss_db_man&amp;rep_table='.$Name)).
 					td(href(rss_dbman_gtxt('dbman_backup'), 'index.php?event=rss_db_bk&amp;bk=1&amp;bk_table='.$Name).
-					'<td><a href="index.php?event=rss_db_man&amp;drop_table='.$Name.'"  onclick="return verify(\''.gTxt('are_you_sure').'\')">'.rss_dbman_gtxt('dbman_drop').'</a></td>'), $style
+					(
+					($rss_dbbk_allow_drop) 
+					? '<td><a href="index.php?event=rss_db_man&amp;drop_table='.$Name.'"  onclick="return verify(\''.
+						gTxt('are_you_sure').'\')">'.rss_dbman_gtxt('dbman_drop').'</a></td>'
+					: '' 
+					)
+					) , $style
 				);
 			}
 
